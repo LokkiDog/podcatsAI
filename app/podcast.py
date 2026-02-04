@@ -23,7 +23,27 @@ class PodcastResult:
 
 def load_prompt_template(name: str) -> str:
     template_path = PROMPTS_DIR / name
-    return template_path.read_text(encoding="utf-8")
+    if template_path.exists():
+        return template_path.read_text(encoding="utf-8")
+    fallback_templates = {
+        "outline.jinja": (
+            "Outline request\n"
+            "Briefing:\n{{ briefing }}\n\n"
+            "Context:\n{{ context }}\n"
+        ),
+        "transcript.jinja": (
+            "Transcript request\n"
+            "Briefing:\n{{ briefing }}\n\n"
+            "Context:\n{{ context }}\n\n"
+            "Outline:\n{{ outline }}\n"
+        ),
+    }
+    if name in fallback_templates:
+        return fallback_templates[name]
+    raise FileNotFoundError(
+        f"Prompt template '{name}' not found at {template_path} "
+        "and no fallback is available."
+    )
 
 
 def render_prompt(template_text: str, **context: object) -> str:
